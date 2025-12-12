@@ -1,0 +1,12 @@
+{
+  "name": "code-splitter",
+  "version": "0.1.0",
+  "description": "Intelligently scan and refactor large code files into smaller, maintainable action-pattern based components following language and framework conventions",
+  "author": {
+    "name": "Code Splitter Plugin",
+    "email": "plugin@codesplitter.dev"
+  },
+  "homepage": "https://github.com/user/code-splitter",
+  "license": "MIT",
+  "keywords": ["refactoring", "code-quality", "action-pattern", "laravel", "react", "node"]
+}

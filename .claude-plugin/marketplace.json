@@ -1,0 +1,27 @@
+{
+    "name": "claude-code-marketplace",
+    "owner": {
+        "name": "Maksym Boiko",
+        "email": "12crya34@gmail.com"
+    },
+    "metadata": {
+        "description": "Marketplace for Claude Code commands and plugins",
+        "version": "1.0.0",
+        "homepage": "https://github.com/MaxBoiko21/claude-plugins-marketplace/"
+    },
+    "plugins": [
+        {
+            "name": "code-splitter",
+            "source": "./plugins/code-splitter",
+            "description": "Intelligently scan and refactor large code files into smaller, maintainable action-pattern based components following language and framework conventions",
+            "keywords": [
+                "refactoring",
+                "code-quality",
+                "action-pattern",
+                "laravel",
+                "react",
+                "node"
+            ]
+        }
+    ]
+}

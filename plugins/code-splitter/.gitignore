@@ -1,0 +1,15 @@
+# IDE and editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Local settings (per-project configuration)
+.claude/*.local.md
+
+# Temporary files
+*.tmp
+*.log
