@@ -1,5 +1,5 @@
 ---
-name: split-code
+name: refactor
 description: Refactor a specific file by splitting it into smaller action/component files
 argument-hint: <file-path>
 allowed-tools:
