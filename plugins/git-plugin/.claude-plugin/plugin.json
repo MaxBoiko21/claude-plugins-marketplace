@@ -1,5 +1,8 @@
 {
   "name": "git-plugin",
   "version": "0.1.0",
-  "description": "Personal git workflow commands: smart commit, PR creation, code review"
+  "description": "Personal git workflow commands: smart commit, PR creation, code review",
+  "author": {
+    "name": "Max Boiko"
+  }
 }
