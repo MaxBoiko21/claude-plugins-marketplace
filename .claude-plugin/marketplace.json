@@ -22,6 +22,17 @@
                 "react",
                 "node"
             ]
+        },
+        {
+            "name": "git",
+            "source": "./plugins/git-plugin",
+            "description": "Personal git workflow commands: smart commit, PR creation, code review",
+            "keywords": [
+                "git",
+                "commit",
+                "pull-request",
+                "code-review"
+            ]
         }
     ]
 }
