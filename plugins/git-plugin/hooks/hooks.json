@@ -1,0 +1,13 @@
+[
+  {
+    "event": "PostToolUse",
+    "hooks": [
+      {
+        "matcher": {
+          "tool_name": "Write|Edit"
+        },
+        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-format.sh"
+      }
+    ]
+  }
+]
