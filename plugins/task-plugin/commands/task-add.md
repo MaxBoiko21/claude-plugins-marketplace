@@ -1,6 +1,6 @@
 ---
 description: Quick-add a task to Notion with auto-classification
-allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), mcp__plugin_Notion_notion__*
+allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), Bash(date *), mcp__plugin_Notion_notion__*
 model: sonnet
 ---
 

@@ -1,6 +1,6 @@
 ---
 description: Morning planning — fetch today's tasks and build a daily plan
-allowed-tools: Bash(cat ~/.claude/notion-databases.md), mcp__plugin_Notion_notion__*
+allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(date *), mcp__plugin_Notion_notion__*
 model: haiku
 ---
 
