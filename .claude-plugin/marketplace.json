@@ -33,6 +33,17 @@
                 "pull-request",
                 "code-review"
             ]
+        },
+        {
+            "name": "task",
+            "source": "./plugins/task-plugin",
+            "description": "Short-term task planning: daily plans, project task overview, quick task addition via Notion",
+            "keywords": [
+                "tasks",
+                "planning",
+                "notion",
+                "productivity"
+            ]
         }
     ]
 }

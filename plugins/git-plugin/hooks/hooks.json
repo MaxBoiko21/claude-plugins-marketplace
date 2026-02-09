@@ -1,13 +1,25 @@
-[
-  {
-    "event": "PostToolUse",
-    "hooks": [
+{
+  "description": "Git workflow hooks: auto-format and devlog",
+  "hooks": {
+    "PostToolUse": [
       {
-        "matcher": {
-          "tool_name": "Write|Edit"
-        },
-        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-format.sh"
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-format.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/devlog.sh"
+          }
+        ]
       }
     ]
   }
-]
+}

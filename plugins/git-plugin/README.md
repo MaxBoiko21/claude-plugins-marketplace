@@ -66,7 +66,29 @@ Findings grouped by severity: Critical > Warning > Info. No nitpicking — skips
 
 Uses `sonnet` model for deeper analysis.
 
-## Hook: Auto-format on file write
+### `/devlog` — Create Notion DevLog entry
+
+Creates a DevLog entry in Notion for the last commit. Useful for testing or ad-hoc logging.
+
+```bash
+/devlog                          # log last commit
+/devlog added retry logic to API # add extra context to summary
+```
+
+What it does:
+- Reads last commit info (hash, message, date, diff stats)
+- Classifies type from conventional commit prefix (feat→Feature, fix→Bug, etc.)
+- Finds or creates project in Notion Projects DB by repo name
+- Queries last 100 DevLog entries for related logs and auto-links them
+- Creates DevLog entry with summary, time estimate, and commit URL
+
+Requires: Notion MCP integration configured (see setup below).
+
+Uses `haiku` model to keep it fast and cheap.
+
+## Hooks
+
+### Auto-format on file write
 
 Automatically formats files after Claude writes or edits them. Triggers on `PostToolUse` for `Write` and `Edit` tools.
 
@@ -79,3 +101,25 @@ Supported formatters (auto-detected by walking up the directory tree):
 | `.go` | `gofmt` |
 
 No config needed — if the formatter binary exists in the project, it runs. If not, silently skips.
+
+### Auto DevLog on commit
+
+Automatically creates a Notion DevLog entry after every successful `git commit`. Triggers on `PostToolUse` for `Bash` tool.
+
+- Detects `git commit` commands (skips `--amend`)
+- Verifies commit succeeded (checks for `[branch hash]` output)
+- Spawns a background Claude process with Notion MCP access
+- Non-blocking — hook exits immediately, DevLog creation happens in background
+
+Same logic as `/devlog`: classifies type, finds/creates project, links related logs, creates entry.
+
+Requires: Notion MCP integration configured (see setup below).
+
+## Notion MCP Setup
+
+The `/devlog` command and auto-devlog hook require Notion MCP integration:
+
+1. Install a Notion MCP plugin or configure Notion MCP manually
+2. The MCP endpoint is `https://mcp.notion.com/mcp`
+3. Auth via OAuth — run `/mcp` and follow the Notion auth flow
+4. Grant access to your Projects and DevLog databases in Notion integration settings
