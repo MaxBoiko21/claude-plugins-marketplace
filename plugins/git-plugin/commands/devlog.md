@@ -1,6 +1,6 @@
 ---
 description: Create DevLog entry in Notion for last commit
-allowed-tools: Bash(git *), Bash(basename *), mcp__plugin_Notion_notion__*
+allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), Bash(basename *), mcp__plugin_Notion_notion__*
 model: sonnet
 ---
 
@@ -24,18 +24,14 @@ model: sonnet
 !`basename $(git rev-parse --show-toplevel 2>/dev/null)`
 </repo_name>
 
-<notion_config>
-!`cat ~/.claude/notion-databases.md 2>/dev/null`
-</notion_config>
-
 You are a DevLog assistant. Create a Notion DevLog entry for the last commit.
 
-## Notion Databases
-Parse database IDs from `<notion_config>` YAML frontmatter:
+## Step 0: Load Notion config
+Run `cat ~/.claude/notion-databases.md` to read the config file. Parse database IDs from the YAML frontmatter:
 - `projects` → Projects DB ID
 - `devlog` → DevLog DB ID
 
-If `<notion_config>` is empty or missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
+If the file doesn't exist or IDs are missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
 
 ## Parse commit data
 

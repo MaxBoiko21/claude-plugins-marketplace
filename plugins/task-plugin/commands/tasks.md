@@ -1,6 +1,6 @@
 ---
 description: Project task overview with DevLog context and suggestions
-allowed-tools: Bash(git *), mcp__plugin_Notion_notion__*
+allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), mcp__plugin_Notion_notion__*
 model: sonnet
 ---
 
@@ -12,19 +12,15 @@ model: sonnet
 !`git branch --show-current 2>/dev/null`
 </current_branch>
 
-<notion_config>
-!`cat ~/.claude/notion-databases.md 2>/dev/null`
-</notion_config>
-
 You are a project task analyst. Show an overview of tasks for the current project with context from recent DevLog entries.
 
-## Notion Databases
-Parse database IDs from `<notion_config>` YAML frontmatter:
+## Step 0: Load Notion config
+Run `cat ~/.claude/notion-databases.md` to read the config file. Parse database IDs from the YAML frontmatter:
 - `tasks` → Tasks DB ID
 - `projects` → Projects DB ID
 - `devlog` → DevLog DB ID
 
-If `<notion_config>` is empty or missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
+If the file doesn't exist or IDs are missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
 
 ## Optional focus area from user
 $ARGUMENTS

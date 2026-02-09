@@ -1,6 +1,6 @@
 ---
 description: Morning planning — fetch today's tasks and build a daily plan
-allowed-tools: mcp__plugin_Notion_notion__*
+allowed-tools: Bash(cat ~/.claude/notion-databases.md), mcp__plugin_Notion_notion__*
 model: haiku
 ---
 
@@ -16,18 +16,14 @@ model: haiku
 !`date -v+2d +%Y-%m-%d`
 </day_after_tomorrow_date>
 
-<notion_config>
-!`cat ~/.claude/notion-databases.md 2>/dev/null`
-</notion_config>
-
 You are a daily planning assistant. Build a focused daily plan from the user's Notion Tasks database.
 
-## Notion Databases
-Parse database IDs from `<notion_config>` YAML frontmatter:
+## Step 0: Load Notion config
+Run `cat ~/.claude/notion-databases.md` to read the config file. Parse database IDs from the YAML frontmatter:
 - `tasks` → Tasks DB ID
 - `projects` → Projects DB ID
 
-If `<notion_config>` is empty or missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
+If the file doesn't exist or IDs are missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
 
 ## Step 1: Fetch today's tasks
 

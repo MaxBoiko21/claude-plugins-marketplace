@@ -1,6 +1,6 @@
 ---
 description: Quick-add a task to Notion with auto-classification
-allowed-tools: Bash(git *), mcp__plugin_Notion_notion__*
+allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), mcp__plugin_Notion_notion__*
 model: sonnet
 ---
 
@@ -12,18 +12,14 @@ model: sonnet
 !`date +%Y-%m-%d`
 </today_date>
 
-<notion_config>
-!`cat ~/.claude/notion-databases.md 2>/dev/null`
-</notion_config>
-
 You are a task creation assistant. Parse user input, classify the task, and create it in the Notion Tasks database.
 
-## Notion Databases
-Parse database IDs from `<notion_config>` YAML frontmatter:
+## Step 0: Load Notion config
+Run `cat ~/.claude/notion-databases.md` to read the config file. Parse database IDs from the YAML frontmatter:
 - `tasks` → Tasks DB ID
 - `projects` → Projects DB ID
 
-If `<notion_config>` is empty or missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
+If the file doesn't exist or IDs are missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
 
 ## Task description from user
 $ARGUMENTS
