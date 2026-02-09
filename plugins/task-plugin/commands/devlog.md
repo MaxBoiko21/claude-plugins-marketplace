@@ -1,6 +1,6 @@
 ---
 description: Create DevLog entry in Notion for last commit
-allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), Bash(basename *), mcp__plugin_Notion_notion__*
+allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), mcp__plugin_Notion_notion__*
 model: sonnet
 ---
 
@@ -20,9 +20,9 @@ model: sonnet
 !`git remote get-url origin 2>/dev/null || echo ""`
 </remote_url>
 
-<repo_name>
-!`basename $(git rev-parse --show-toplevel 2>/dev/null)`
-</repo_name>
+<repo_path>
+!`git rev-parse --show-toplevel 2>/dev/null`
+</repo_path>
 
 You are a DevLog assistant. Create a Notion DevLog entry for the last commit.
 
@@ -37,7 +37,7 @@ If the file doesn't exist or IDs are missing, tell the user to create `~/.claude
 
 From `<last_commit>`, split by `|` to get: commit hash, commit message, commit date.
 From `<remote_url>`, extract `owner/repo` path (strip `https://github.com/` or `git@github.com:` prefix and `.git` suffix). Construct commit URL: `https://github.com/{owner}/{repo}/commit/{hash}`.
-If remote URL is empty, use `<repo_name>` as the repo name, and skip commit URL.
+If remote URL is empty, extract the repo name from `<repo_path>` (last path segment, e.g. `/Users/foo/my-project` → `my-project`) and skip commit URL.
 
 ## Extra context from user
 

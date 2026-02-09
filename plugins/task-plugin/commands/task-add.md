@@ -56,7 +56,11 @@ From the cleaned description (project reference removed), determine:
 
 ## Step 3: Create in Notion
 
-Create a new page in the Tasks DB with these properties:
+First, fetch the Tasks DB (by its ID from config) using `notion-fetch` to get its data sources. Use the `data_source_id` from the response as the parent when calling `notion-create-pages`:
+
+parent: { data_source_id: "<data_source_id_from_fetch>" }
+
+Set these properties:
 
 - **Name** (title): The reformulated task name
 - **Project** (relation): Use the Notion page URL `https://www.notion.so/<page_id_without_dashes>`
