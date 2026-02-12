@@ -1,6 +1,6 @@
 ---
-description: Quick-add a task to Notion with auto-classification
-allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), Bash(date *), mcp__plugin_Notion_notion__*
+description: Quick-add a task with auto-classification
+allowed-tools: Bash(ws *), Bash(git *), Bash(cat *), Bash(date *)
 model: sonnet
 ---
 
@@ -12,14 +12,7 @@ model: sonnet
 !`date +%Y-%m-%d`
 </today_date>
 
-You are a task creation assistant. Parse user input, classify the task, and create it in the Notion Tasks database.
-
-## Step 0: Load Notion config
-Run `cat ~/.claude/notion-databases.md` to read the config file. Parse database IDs from the YAML frontmatter:
-- `tasks` → Tasks DB ID
-- `projects` → Projects DB ID
-
-If the file doesn't exist or IDs are missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
+You are a task creation assistant. Parse user input, classify the task, and create it via the `ws` CLI.
 
 ## Task description from user
 $ARGUMENTS
@@ -28,23 +21,23 @@ If `$ARGUMENTS` is empty, respond with: "Usage: `/task:add <description>`. Examp
 
 ## Step 1: Detect project
 
-Check if `$ARGUMENTS` contains an explicit project reference:
-- `project:<name>` pattern (e.g., `project:marketplace`)
-- A known project name at the start of the description
+Check if `$ARGUMENTS` contains `project:<name>` pattern (e.g., `project:marketplace`). If found, strip it from the description and use the extracted name.
 
-If found, strip the project reference from the description before further analysis. Use the extracted name to search the Projects DB.
+If no explicit project reference, extract the repo name from `<repo_path>` (last path segment, e.g. `/Users/foo/my-project` → `my-project`).
 
-If no explicit project reference, extract the repo name from `<repo_path>` (last path segment, e.g. `/Users/foo/my-project` → `my-project`) and search the Projects DB.
+Search for the project: `ws project search <name>`
 
-**If the project is NOT found in Projects DB:** auto-create a new page in Projects DB with Name = the project name, Status = "Active". Note its page ID.
-
-**If ambiguous** (the first word could be a project name or part of the description), ask the user to clarify using AskUserQuestion before proceeding.
+**If the project is NOT found — auto-create:**
+1. Read `<repo_path>/CLAUDE.md` and/or `<repo_path>/agents.md` via `cat` to understand the project
+2. Auto-generate a 1-2 sentence description from those files
+3. Ask the user via AskUserQuestion: stack, priority, pleasure
+4. Create: `ws project add "<name>" --stack "..." --priority ... --pleasure ... --description "..."`
 
 ## Step 2: Analyze and classify
 
 From the cleaned description (project reference removed), determine:
 
-- **Name:** Reformulate to clear English, imperative form. Examples: "Add retry logic to payment API", "Fix login crash on iOS", "Update user migration script". Keep concise.
+- **Name:** Reformulate to clear English, imperative form. Examples: "Add retry logic to payment API", "Fix login crash on iOS". Keep concise.
 - **Complexity:**
   - Easy — under 1 hour, straightforward
   - Medium — 1-4 hours, some thought needed
@@ -54,35 +47,22 @@ From the cleaned description (project reference removed), determine:
   - High — if description contains "urgent", "blocking", "critical", "for today", "ASAP"
   - Low — if description contains "nice to have", "eventually", "when possible", "someday"
 
-## Step 3: Create in Notion
+## Step 3: Generate summary
 
-First, fetch the Tasks DB (by its ID from config) using `notion-fetch` to get its data sources. Use the `data_source_id` from the response as the parent when calling `notion-create-pages`:
+Write a short "where to start" hint based on the task and the project's stack context. 1-2 sentences. Example: "Start by adding a retry wrapper around the HTTP client in `services/payment.ts`."
 
-parent: { data_source_id: "<data_source_id_from_fetch>" }
+## Step 4: Create task
 
-Set these properties:
-
-- **Name** (title): The reformulated task name
-- **Project** (relation): Use the Notion page URL `https://www.notion.so/<page_id_without_dashes>`
-- **Status** (select): "Not started"
-- **Priority** (select): "High", "Medium", or "Low"
-- **Complexity** (select): "Easy", "Medium", or "Hard"
-
-**Page body** — add these sections as content blocks:
-
-```
-## Original Request
-{verbatim $ARGUMENTS before any stripping}
-
-## Notes
-{2-3 sentence technical analysis. What does this task involve? Any considerations or potential complications?}
+```bash
+ws task add "<name>" --project <project_name> --priority <priority> --complexity <complexity> --summary "<summary>"
 ```
 
-## Step 4: Output
+## Step 5: Output
 
 Print a concise confirmation:
 
 ```
 Task created: {Name}
 Project: {ProjectName} | Priority: {Priority} | Complexity: {Complexity}
+Summary: {Summary}
 ```

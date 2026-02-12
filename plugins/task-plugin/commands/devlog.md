@@ -1,6 +1,6 @@
 ---
-description: Create DevLog entry in Notion for last commit
-allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(git *), mcp__plugin_Notion_notion__*
+description: Create DevLog entry for last commit
+allowed-tools: Bash(ws *), Bash(git *)
 model: sonnet
 ---
 
@@ -24,72 +24,67 @@ model: sonnet
 !`git rev-parse --show-toplevel 2>/dev/null`
 </repo_path>
 
-You are a DevLog assistant. Create a Notion DevLog entry for the last commit.
+<current_branch>
+!`git branch --show-current 2>/dev/null`
+</current_branch>
 
-## Step 0: Load Notion config
-Run `cat ~/.claude/notion-databases.md` to read the config file. Parse database IDs from the YAML frontmatter:
-- `projects` → Projects DB ID
-- `devlog` → DevLog DB ID
+You are a DevLog assistant. Create a DevLog entry for the last commit via the `ws` CLI.
 
-If the file doesn't exist or IDs are missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
+## Extra context from user
+$ARGUMENTS
 
-## Parse commit data
+## Step 1: Parse commit data
 
 From `<last_commit>`, split by `|` to get: commit hash, commit message, commit date.
 From `<remote_url>`, extract `owner/repo` path (strip `https://github.com/` or `git@github.com:` prefix and `.git` suffix). Construct commit URL: `https://github.com/{owner}/{repo}/commit/{hash}`.
-If remote URL is empty, extract the repo name from `<repo_path>` (last path segment, e.g. `/Users/foo/my-project` → `my-project`) and skip commit URL.
+If remote URL is empty, skip commit URL.
 
-## Extra context from user
+## Step 2: Classify type from commit prefix
 
-$ARGUMENTS
-
-## Instructions
-
-### Step 1: Classify type from commit prefix
 Map the conventional commit prefix:
-- feat → Feature
-- fix → Bug
-- refactor → Refactor
-- hotfix → Hotfix
-- anything else → Feature
+- feat → feature
+- fix → bug
+- refactor → refactor
+- hotfix → hotfix
+- anything else → feature
 
-### Step 2: Find or create project
-Search the Projects database (Projects DB ID from above) for a page whose Name (title) matches the repo name (case-insensitive).
-- If found, note its page ID.
-- If NOT found, create a new page in Projects DB with Name = repo name, Status = "Active". Note its page ID.
+## Step 3: Find or create project
 
-### Step 3: Query related logs
-Query the DevLog database (DevLog DB ID from above) filtered by Project relation matching the project page ID, sorted by Date descending, limit 100.
-From results, identify entries whose Name or Summary relates to the same topic/feature as this commit. Collect their page IDs (max 5 related).
+Extract the repo name from `<repo_path>` (last path segment).
 
-### Step 4: Create DevLog entry
-Create a new page in the DevLog database (DevLog DB ID from above).
+Search: `ws project search <repo_name>`
 
-**Properties:**
-- **Name** (title): Derive from commit message — strip the conventional prefix (feat:, fix:, etc.), capitalize first letter. Keep concise.
-- **Project** (relation): Use the Notion page URL of the project (e.g. `https://www.notion.so/<page_id_without_dashes>`)
-- **Type** (select): The classified type from Step 1. Use Hotfix only for urgent production fixes, Refactor for non-functional changes, Bug for defect corrections, Feature for new functionality.
-- **Date** (date): { "start": "<commit_date>" }
-- **Summary** (rich_text): 1-2 sentences, readable at a glance in a table view. If user provided extra context via $ARGUMENTS, incorporate it.
-- **AI Estimate** (number): Honest estimate in hours (round to 0.25). Base on diff complexity and scope. Don't be optimistic.
-- **Actual Hours** (number): Leave empty — user fills this manually.
-- **Commit/PR** (url): The constructed commit URL (skip if no remote)
-- **Related Logs** (relation): Array of related page IDs from Step 3 (skip if none found)
-
-**Page body** — add two sections as content blocks:
-
+If NOT found, auto-create with sensible defaults (no blocking prompts):
+```bash
+ws project add "<repo_name>" --stack "unknown" --priority medium --pleasure medium
 ```
-## Problem
-[2-4 sentences: what was wrong or what was needed. Include root cause if it's a bug.]
 
-## Solution
-[2-4 sentences: what was done. Mention key files or architectural decisions if relevant.]
+## Step 4: Generate entry content
+
+From the diff context and user's `$ARGUMENTS`, generate:
+- **Title:** Derive from commit message — strip the conventional prefix (feat:, fix:, etc.), capitalize first letter. Keep concise.
+- **Summary:** 1-2 sentences, readable at a glance.
+- **Problem:** 2-4 sentences — what was wrong or what was needed.
+- **Solution:** 2-4 sentences — what was done. Mention key files or architectural decisions.
+- **AI Estimate:** Honest estimate in hours (round to 0.25). Base on diff complexity.
+
+## Step 5: Create entry
+
+```bash
+ws devlog add "<title>" \
+  --project <repo_name> --type <type> --summary "<summary>" \
+  --problem "<problem>" --solution "<solution>" \
+  --ai_estimate <hours> --commit_url "<url>" \
+  --branch "<current_branch>"
 ```
+
+Skip `--commit_url` if no remote. Skip `--claude_session` (reserved for future use).
+
+## Step 6: Output
+
+Print: **DevLog created:** [Title] ([Type]) — [Summary first sentence]
 
 ### Writing guidelines
 - English, technical, concise, factual. No fluff.
 - Summary should be one line ideally.
 - Problem and Solution should be self-contained — someone reading months later should understand without looking at code.
-
-### Step 5: Output
-Print: **DevLog created:** [Name] ([Type]) — [Summary first sentence]

@@ -1,7 +1,7 @@
 {
   "name": "task-plugin",
-  "version": "0.1.0",
-  "description": "Short-term task planning: daily plans, project task overview, quick task addition via Notion",
+  "version": "0.2.0",
+  "description": "Task planning: daily plans, project overview, quick task addition via ws CLI",
   "author": {
     "name": "Max Boiko"
   }

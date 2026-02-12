@@ -1,80 +1,64 @@
 ---
-description: Morning planning — fetch today's tasks and build a daily plan
-allowed-tools: Bash(cat ~/.claude/notion-databases.md), Bash(date *), mcp__plugin_Notion_notion__*
-model: haiku
+description: Morning planning — build a daily plan from open tasks
+allowed-tools: Bash(ws *), Bash(date *)
+model: sonnet
 ---
 
 <today_date>
 !`date +%Y-%m-%d`
 </today_date>
 
-<tomorrow_date>
-!`date -v+1d +%Y-%m-%d`
-</tomorrow_date>
+You are a daily planning assistant. Build a focused daily plan by scoring and sorting open tasks from the `ws` CLI.
 
-<day_after_tomorrow_date>
-!`date -v+2d +%Y-%m-%d`
-</day_after_tomorrow_date>
+## Step 1: Fetch open tasks
 
-You are a daily planning assistant. Build a focused daily plan from the user's Notion Tasks database.
+Run: `ws task list --status open`
 
-## Step 0: Load Notion config
-Run `cat ~/.claude/notion-databases.md` to read the config file. Parse database IDs from the YAML frontmatter:
-- `tasks` → Tasks DB ID
-- `projects` → Projects DB ID
+If no tasks are returned, respond with "No open tasks." and stop.
 
-If the file doesn't exist or IDs are missing, tell the user to create `~/.claude/notion-databases.md` with their DB IDs and stop.
+## Step 2: Fetch project context
 
-## Step 1: Fetch today's tasks
+For each unique project name in the task results, fetch its details:
+`ws project search <project_name>`
 
-Query the Tasks DB with a compound OR filter:
-- Date equals `<today_date>`
-- AND/OR: Date is empty AND Priority equals "High"
+Extract priority and pleasure values for each project.
 
-Also fetch tasks where Status is NOT "Done".
+## Step 3: Score and sort
 
-## Step 2: Resolve project names
+For each task, calculate a score:
 
-For each task that has a Project relation, fetch the related project page to get its Name. Use this as a `[ProjectName]` prefix in the output.
+```
+score = (task_priority_weight × 3) + (project_priority_weight × 2) + (pleasure_weight × 1)
+```
 
-## Step 3: Sort tasks
+Weights: high=3, medium=2, low=1
 
-Sort into two buckets:
-- **Morning (Hard)** — tasks with Complexity = "Hard"
-- **Afternoon (Easy/Medium)** — tasks with Complexity = "Easy" or "Medium"
+Split into time blocks:
+- **Morning (Focus):** Top 2-3 tasks by score, favoring high project-priority (discipline)
+- **Afternoon (Energy):** Remaining tasks, favoring high-pleasure to maintain motivation
+- **Defer:** If >6 total tasks, suggest deferring lowest-scoring tasks
 
-Within each bucket, sort by Priority: High → Medium → Low.
-
-## Step 4: Light load check
-
-If the total is ≤3 tasks OR all tasks are Easy/Medium complexity:
-1. Query Tasks DB for Date = `<tomorrow_date>`, Status ≠ "Done"
-2. If still under 4 tasks, query for Date = `<day_after_tomorrow_date>`, Status ≠ "Done"
-3. Pull tasks until total reaches 4-6. Mark pulled tasks with "(pulled from {date})" in output.
-4. Stop pulling once you hit 6 tasks total.
-
-## Step 5: Overload check
-
-If total exceeds 6 tasks, suggest deferring Low priority tasks to tomorrow. List which tasks you'd defer.
-
-## Step 6: Output
+## Step 4: Output
 
 Format as:
 
 ```
 ## Today's Plan — {today_date}
 
-### Morning (Hard)
-1. [Project] Task name — Priority, ~estimate
+### Morning (Focus)
+1. [Project] Task — Priority, Complexity, ~estimate
 
-### Afternoon (Easy/Medium)
-1. [Project] Task name — Priority, ~estimate
+### Afternoon (Energy)
+1. [Project] Task — Priority, Complexity, ~estimate
+
+### Defer (consider)
+- [Project] Task — reason
 
 ### Notes
-- Capacity warnings, pulled tasks from future days, deferral suggestions
+- Capacity warnings, motivation tips
 ```
 
 Rules:
-- If a bucket is empty, show "Nothing planned" under it.
-- Estimate is based on Complexity: Easy ~30min, Medium ~2h, Hard ~5h. Adjust if task name suggests otherwise.
+- If a section is empty, show "Nothing planned" under it.
+- Estimates: Easy ~30min, Medium ~2h, Hard ~5h.
 - Keep output concise. No fluff.
